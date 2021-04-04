@@ -12,13 +12,11 @@ export default function Home() {
 
 
   const [document, setDocument] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState([]);
 
   useEffect(()=>{
     
-    if(selectedId!=null){  
      alert(selectedId.Código +' => '+ selectedId.NomeUnidade);
-    }
       
   }),(selectedId);
 
