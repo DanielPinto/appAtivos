@@ -1,25 +1,29 @@
 import 'react-native-gesture-handler';
 import React, {useEffect, useState} from 'react';
-import { SafeAreaView, StyleSheet, Button, View, FlatList,Text } from 'react-native';
+import { SafeAreaView, StyleSheet, Button, FlatList} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { set } from 'lodash';
+import getJson from './Functions/Csvtojson';
+import Item from "./Components/ItemList";
+
 
 
 export default function Home() {
 
 
   const [document, setDocument] = useState([]);
-
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(()=>{
-    if(document!=[]){  
-
-      
-      console.log(document);
+    
+    if(selectedId!=null){  
+     alert(selectedId.Código +' => '+ selectedId.NomeUnidade);
     }
       
-  }),(document);
+  }),(selectedId);
+
+
+
 
 async function getUri(){
 
@@ -46,7 +50,7 @@ async function getDocument(){
     await getUri().then(
       async function(uri){
         await readDocument(uri).then((file)=>{
-          let jsonDoc = csvToJson(file);
+          let jsonDoc = getJson(file);
           setDocument(jsonDoc);
         });
       }
@@ -54,34 +58,20 @@ async function getDocument(){
  
 };
 
-console.log("fora do getDocument");
 
+  const renderItem = ({item}) => {
+    const backgroundColor = item.Código === selectedId.Código ? "#ffc72c" : "#f0f0f0";
+    const color = item.Código === selectedId.Código ? 'black' : '#555';
 
-function csvToJson(csv){
- 
-  var lines=csv.split("\n");
-
-  var result = [];
-
-  var headers=lines[0].replace(/\s/g, '').split(",");
-
-  for(var i=1;i<lines.length;i++){
-
-	  var obj = {};
-	  var currentline=lines[i].split(",");
-
-	  for(var j=0;j<headers.length;j++){
-		  obj[headers[j]] = currentline[j];
-	  }
-
-	  result.push(obj);
-
-  }
-  
-  //return result; //JavaScript object
-  return JSON.parse(JSON.stringify(result)); //JSON
-
-}
+    return (
+      <Item
+        item={item}
+        onPress={() => setSelectedId(item)}
+        backgroundColor={{ backgroundColor }}
+        textColor={{ color }}
+      />
+    );
+  };
 
 
 
@@ -90,10 +80,12 @@ function csvToJson(csv){
       
       <FlatList
       data={document}
-      renderItem={({item})=><Text>{item.NomeUnidade}</Text>}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.Código}
+      extraData={selectedId.Código}
       />
       <Button 
-      title="CSV"
+      title="get CSV"
       onPress={()=>getDocument()}/>
 
     
@@ -101,13 +93,13 @@ function csvToJson(csv){
   );
 
 
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  
+  container:{
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    marginTop: 30//StatusBar.currentHeight || 0,
+  }
+
 });
