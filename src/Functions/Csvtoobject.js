@@ -26,8 +26,7 @@ const getObject = (csv)=>{
         } catch (error) {
             reject(error)
         }
-
-        
+       
     
     })
 

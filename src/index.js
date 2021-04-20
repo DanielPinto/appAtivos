@@ -1,6 +1,5 @@
-import 'react-native-gesture-handler';
-import React, {useEffect, useState} from 'react';
-import { SafeAreaView, StyleSheet, Button, Text, View,FlatList} from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Button, Text, View} from 'react-native';
 
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -9,10 +8,9 @@ import getObject from './Functions/Csvtoobject';
 import setCsvToDatabase from './Functions/SetCsvToDatabase';
 import Product from "./Database/Models/Product";
 
-import Item from "./Components/ItemList";
 
 
-export default function Home() {
+export default function Home(props) {
 
 
   const message = 'Ler Arquivo CSV';
@@ -35,36 +33,22 @@ export default function Home() {
     
     }).then((objects)=>{
 
-      setCsvToDatabase(objects);
+      return setCsvToDatabase(objects);
 
     }).then((idsInserteds)=>{
       
       
-      setFlagOperation('Leitura Finalizada!');
+      alert(idsInserteds + ' linhas inseridas!');
+
+      setFlagOperation(message);
       
-    
     }).catch( erro=>{
 
       console.log("Erro read/insert: " + erro)
-    }).finally(()=>{
-
-      setTimeout(() => {
-        setFlagOperation(message);
-      }, 3000);
-      
-    })
-
+    });
  
 };
 
-
-  function getProducts(){
-
-    Product.all()
-    .then( 
-      prod => console.log(prod)
-    )
-  };
 
   function removeTable(){
 
@@ -76,24 +60,12 @@ export default function Home() {
 
 
 
-  const renderItem = ({item}) => {
-    const backgroundColor = item.Código === selectedId.Código ? "#ffc72c" : "#f0f0f0";
-    const color = item.Código === selectedId.Código ? 'black' : '#555';
-
-    return (
-      <Item
-        item={item}
-        onPress={() => setSelectedId(item)}
-        backgroundColor={{ backgroundColor }}
-        textColor={{ color }}
-      />
-    );
-  };
+ 
 
 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View>
 
    
      <View
@@ -101,34 +73,22 @@ export default function Home() {
      >
 
       <Button 
-      title="get CSV"
+      title="Upload CSV"
       onPress={()=>getDocument()}/>
 
     </View>
-    <View
-    style={styles.button}
-    >
-      <Button 
-      title="Listar Equipamentos"
-      onPress={()=>getProducts()}/>
-    </View>
+    
 
     <View
     style={styles.button}
     >
       <Button 
-      title="Remover Tabela"
+      title="Remover Todos"
       onPress={()=>removeTable()}/>
     </View>
 
-
-    <Text
-    style={styles.message}
-    >
-      {flagOperation}
-    </Text>
     
-    </SafeAreaView>
+    </View>
   );
 
 
@@ -141,21 +101,19 @@ const styles = StyleSheet.create({
     marginTop: 30//StatusBar.currentHeight || 0,
   },
   button:{
-    marginTop: 15
+    marginTop: 15,
+    marginHorizontal:20
   },
   message:{
-    marginTop: 30
+    marginTop: 30,
+    alignContent: 'center',
+
   }
 
 });
 
 /*
- <FlatList
-      data={document}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.Código}
-      extraData={selectedId.Código}
-      />
+ 
 
 
 

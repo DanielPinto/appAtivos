@@ -194,6 +194,25 @@ const create = (obj) => {
     });
   };
 
+  const getEtiquetaTi = (etiqueta_ti) => {
+    return new Promise((resolve, reject) => {
+      db.transaction((tx) => {
+        //comando SQL modificável
+        tx.executeSql(
+          "SELECT * FROM products WHERE kit=?;",
+          [etiqueta_ti],
+          //-----------------------
+          (_, { rows }) => {
+            if (rows.length > 0) resolve(rows._array);
+            else reject('erro 0 dados encontrados'); // nenhum registro encontrado
+            
+          },
+          (_, error) => reject('0 dados encontrados')// erro interno em tx.executeSql
+        );
+      });
+    });
+  };
+
 
   export default {
     create,
@@ -202,4 +221,5 @@ const create = (obj) => {
     all,
     remove,
     removeTable,
+    getEtiquetaTi,
   };
