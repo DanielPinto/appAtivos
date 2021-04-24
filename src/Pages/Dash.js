@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, Button, StyleSheet, SafeAreaView , TouchableOpacity} from "react-native";
+
 
 import Products from "../Database/Models/Product";
 
@@ -7,29 +8,61 @@ import Products from "../Database/Models/Product";
 
 const Dash = () => {
 
+
     const [tags_blanks, setTagsBlanks] = useState([]);
+    const [serial_blanks, setSerialBlanks] = useState([]);
+    const [unidade_blanks, setUnidadeBlanks] = useState([]);
 
     useEffect(()=>{
 
-        getTags('Kit VD');
+        getItens();
 
     },[]);
 
 
 
-async function getTags(tag){
+async function getItens(familia){
 
-            Products.getEtiquetaTi(tag).then(tags=>setTagsBlanks(tags))
-                .catch(tags => setTagsBlanks(tags));
+            Products.getIten('kit', '', familia).then(fields=>setTagsBlanks(fields))
+                .catch(fields => setTagsBlanks(fields));
+
+            Products.getIten('serial', '', familia).then(fields=>setSerialBlanks(fields))
+              .catch(fields => setSerialBlanks(fields));
+
+            Products.getIten('unidade', '', familia).then(fields=>setUnidadeBlanks(fields))
+              .catch(fields => setUnidadeBlanks(fields));
     };
 
 
 
     return(
         <SafeAreaView>
-            <View>
-                <Text>{tags_blanks.length}</Text>
-            </View>
+          <View>
+            <TouchableOpacity onPress={()=>getItens('Thinclient')}>
+              <View>
+                <Text>Thinclient</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={()=>getItens('Monitor')}>
+              <View>
+                <Text>Monitor</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={()=>getItens('Switch')}>
+              <View>
+                <Text>Switch</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View>
+
+
+            <Text>sem Etiqueta TI: {tags_blanks.length}</Text>
+            <Text>sem Serial: {serial_blanks.length}</Text>
+            <Text>sem Unidade: {unidade_blanks.length}</Text>
+          </View>
         </SafeAreaView>
     )
 

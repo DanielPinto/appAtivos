@@ -194,20 +194,16 @@ const create = (obj) => {
     });
   };
 
-  const getEtiquetaTi = (etiqueta_ti) => {
+  const getIten = (field, value, familia) => {
     return new Promise((resolve, reject) => {
       db.transaction((tx) => {
         //comando SQL modificável
         tx.executeSql(
-          "SELECT * FROM products WHERE kit=?;",
-          [etiqueta_ti],
+          "SELECT * FROM products WHERE " + field + " = ? AND familia = '" + familia + "';",
+          [value],
           //-----------------------
-          (_, { rows }) => {
-            if (rows.length > 0) resolve(rows._array);
-            else reject('erro 0 dados encontrados'); // nenhum registro encontrado
-            
-          },
-          (_, error) => reject('0 dados encontrados')// erro interno em tx.executeSql
+          (_, { rows }) => {resolve(rows._array);},
+          (_, error) => {reject(error)}// erro interno em tx.executeSql
         );
       });
     });
@@ -221,5 +217,5 @@ const create = (obj) => {
     all,
     remove,
     removeTable,
-    getEtiquetaTi,
+    getIten,
   };

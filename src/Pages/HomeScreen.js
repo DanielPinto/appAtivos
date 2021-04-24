@@ -36,6 +36,12 @@ function HomeScreen(props) {
             title="DashBoard"
             onPress={()=>goPage('DashBoard')}/>
         </View>
+
+        <View style={styles.button}>
+            <Button 
+            title="Scanner Item"
+            onPress={()=>goPage('Scanner')}/>
+        </View>
     </SafeAreaView>
 
     );
