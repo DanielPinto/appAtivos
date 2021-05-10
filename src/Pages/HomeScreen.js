@@ -33,8 +33,8 @@ function HomeScreen(props) {
 
         <View style={styles.button}>
             <Button 
-            title="DashBoard"
-            onPress={()=>goPage('DashBoard')}/>
+            title="Cadastrar Item"
+            onPress={()=>goPage('Cadastrar')}/>
         </View>
 
         <View style={styles.button}>

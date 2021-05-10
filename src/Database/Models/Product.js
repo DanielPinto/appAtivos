@@ -18,7 +18,7 @@ db.transaction(tx=>{
     tx.executeSql(
         "CREATE TABLE IF NOT EXISTS products (" +
         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-        "codigo TEXTO UNIQUE," +
+        "codigo TEXTO," +
         "estoque TEXTO," +
         "mundo TEXTO," +
         "regional TEXTO," +

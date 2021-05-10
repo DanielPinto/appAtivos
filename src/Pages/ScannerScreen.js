@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { Text, View, StyleSheet, Button, FlatList, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { Ionicons } from '@expo/vector-icons';
 
 import Product from "../Database/Models/Product";
 import FormEditItem from '../Components/FormEditItem';
 import getValuesOfObject from '../Functions/GetValuesOfObject';
-import { set } from 'react-native-reanimated';
 
 export default function ScannerScreen() {
 
+  const modal_height = Dimensions.get('window').height;
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [item, setItem] = useState([]);
@@ -36,11 +36,12 @@ export default function ScannerScreen() {
 
       Product.getItemByTag(tag).then(
         (itemRead) => {
-          if (itemRead.lenght > 0) {
+          if (itemRead.length > 0) {
             console.log(itemRead);
             setItem(itemRead);
-          }else{
-            alert("não encontrado!")
+          } else {
+            console.log(itemRead);
+            alert(tag + " - não encontrado!")
           }
 
         }
@@ -91,6 +92,8 @@ export default function ScannerScreen() {
       <Text style={[styles.title, textColor]}> Modelo: {item.modelo}</Text>
       <Text style={[styles.title, textColor]}> Área: {item.area}</Text>
       <Text style={[styles.title, textColor]}> Departamento: {item.departamento}</Text>
+      <Text style={[styles.title, textColor]}> Usuário: {item.usuario}</Text>
+
       <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
 
         <TouchableOpacity style={{ paddingHorizontal: 5 }}>
@@ -140,7 +143,9 @@ export default function ScannerScreen() {
     <View style={styles.container}>
       {scanned ?
         <View>
-          <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
+          <View style={{ marginHorizontal: 10 }}>
+            <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
+          </View>
 
           <FlatList
             data={item}
@@ -157,7 +162,7 @@ export default function ScannerScreen() {
               setmodalVisible(!modalVisible);
             }}>
             <View style={styles.centeredView}>
-              <View style={styles.modalView}>
+              <View style={[styles.modalView, { height: modal_height - 50 }]}>
 
                 <FormEditItem
                   itemForSelect={itemForSelect}
@@ -166,11 +171,25 @@ export default function ScannerScreen() {
                 />
 
 
-                <View style={{ margin: 45 }}>
-                  <Button
+                <View style={{flexDirection:"row", margin:45}}>
 
-                    title="Atualizar"
-                    onPress={() => updateItem()} />
+                  <View style={{ backgroundColor:"blue", flex:1, marginHorizontal:5 }}>
+                    <Button
+                      title="Update"
+                      onPress={() => updateItem()} />
+                  </View>
+
+                  <TouchableOpacity style={{ 
+                    backgroundColor:"#FF3322",
+                    flex:1, 
+                    marginHorizontal:5,
+                    alignItems:"center",
+                    justifyContent:"center"
+                    }}
+                    onPress={()=>setmodalVisible(!modalVisible)}
+                    >
+                    <Text style={{color:"#FFF"}}>CANCEL</Text>
+                  </TouchableOpacity>
                 </View>
 
               </View>
@@ -203,9 +222,10 @@ const styles = StyleSheet.create({
     flex: 2,
     justifyContent: "center",
     marginTop: 5
+
   },
   modalView: {
-    margin: 20,
+    margin: 10,
     backgroundColor: "white",
     borderRadius: 20,
     padding: 20,

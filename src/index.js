@@ -54,7 +54,7 @@ export default function Home(props) {
 
     Product.removeTable()
     .then( 
-      prod => console.log(prod)
+      prod => alert(prod + " itens removidos!")
     )
   }
 

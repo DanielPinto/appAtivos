@@ -5,14 +5,14 @@ import Dados from '../Functions/Dados';
 
 
 
-const FormEditItem = (props) => {
+const FormStoreItem = () => {
 
     const deviceWidth = Dimensions.get('window').width;
     const [item, setItem] = useState(props.itemForSelect);
 
     useEffect(() => {
 
-        props.setItemForSelect(item);
+        setItemForSelect(item);
 
     }, [item]);
 
