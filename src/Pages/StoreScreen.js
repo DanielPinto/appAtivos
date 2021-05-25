@@ -4,11 +4,52 @@ import { Picker } from '@react-native-picker/picker';
 import Dados from '../Functions/Dados';
 import getValuesOfObject from '../Functions/GetValuesOfObject';
 import Product from '../Database/Models/Product';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function StoreScreen() {
 
     const deviceWidth = Dimensions.get('window').width;
     const [item, setItem] = useState(Dados.ObjectClean);
+
+    const [scanned, setScanned] = useState(true);
+    const [hasPermission, setHasPermission] = useState(null);
+    const [tag, setTag] = useState(null);
+    const [buttonClicked, setButtonClicked] = useState(null);
+
+    const [dateClicked, setDateClicked] = useState(null);
+    const [date, setDate] = useState(new Date());
+    const [dateFormatted, setDateFormatted] = useState(null);
+    const [show, setShow] = useState(false);
+
+
+
+    useEffect(() => {
+        (async () => {
+            const { status } = await BarCodeScanner.requestPermissionsAsync();
+            setHasPermission(status === 'granted');
+        })();
+    }, []);
+
+    if (hasPermission === null) {
+        return <Text>Requesting for camera permission</Text>;
+    }
+    if (hasPermission === false) {
+        return <Text>No access to camera</Text>;
+    }
+
+    const handleBarCodeScanned = ({ data }) => {
+
+        refreshItem(buttonClicked, data)
+        setScanned(true);
+
+    };
+
+    const scanner = button => {
+        setButtonClicked(button);
+        setScanned(false)
+    }
 
     const refreshItem = (field, element) => {
 
@@ -24,7 +65,7 @@ export default function StoreScreen() {
         try {
             let objectForInsert = getValuesOfObject(item);
             let idInserted = await Product.create(objectForInsert)
-            alert("id inserted: " + idInserted)
+            alert("Item inserido!")
             setItem({
                 ...item,
                 ["serial"]: "",
@@ -38,316 +79,432 @@ export default function StoreScreen() {
 
     }
 
+    const onChange = (event, selectedDate) => {
+
+        try {
+
+            setShow(false)
+            setDate(selectedDate);
+            const formattedDate = formatDate(selectedDate);
+            refreshItem(dateClicked, formattedDate);
+
+        } catch (error) {
+            console.log("ERRO: " + error)
+        }
+
+
+    };
+
+    const openDatePicker = (dateClicked) => {
+        setShow(true)
+        setDateClicked(dateClicked)
+    }
+
+    const formatDate = (data) => {
+        var dia = String(data.getDate()).padStart(2, '0');
+        var mes = String(data.getMonth() + 1).padStart(2, '0');
+        var ano = data.getFullYear();
+        var dataAtual = dia + '/' + mes + '/' + ano;
+        return dataAtual;
+    };
+
+    const cleanForm = () => {
+        setItem([]);
+        setDateFormatted(null);
+    };
 
     return (
 
-        <ScrollView>
+        <View style={styles.container}>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Mundo</Text>
-                <Picker
-                    selectedValue={item.mundo}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("mundo", itemValue)}>
-                    {Dados.mundo.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
+            {scanned ?
+                <ScrollView style={styles.scroolLayout}>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Regional</Text>
-                <Picker
-                    selectedValue={item.regional}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("regional", itemValue)}>
-                    {Dados.regional.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
+                    <View >
+                        <Text style={styles.titleForm}>Mundo</Text>
+                        <View style={styles.viewForm}>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Unidade</Text>
-                <Picker
-                    selectedValue={item.nome_unidade}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("nome_unidade", itemValue)}>
-                    {Dados.unidade.map(element => <Picker.Item label={element} value={element} />
-                    )}
-                </Picker>
-            </View>
+                            <Picker
+                                selectedValue={item.mundo}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("mundo", itemValue)}>
+                                {Dados.mundo.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Estoque</Text>
-                <Picker
-                    selectedValue={item.estoque}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("estoque", itemValue)}>
-                    {Dados.estoque.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
+                        <Text style={styles.titleForm}> Regional</Text>
+                        <View style={styles.viewForm}>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Área</Text>
-                <Picker
-                    selectedValue={item.area}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("area", itemValue)}>
-                    {Dados.area.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
+                            <Picker
+                                selectedValue={item.regional}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("regional", itemValue)}>
+                                {Dados.regional.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Departamento</Text>
-                <Picker
-                    selectedValue={item.departamento}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("departamento", itemValue)}>
-                    {Dados.departamento.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
+                        <Text style={styles.titleForm} >Unidade</Text>
+                        <View style={styles.viewForm}>
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Número de Série</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("serial", text)}
-                    value={item.serial}
-                    placeholder="Número de Série"
+                            <Picker
+                                selectedValue={item.nome_unidade}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("nome_unidade", itemValue)}>
+                                {Dados.unidade.map(element => <Picker.Item label={element} value={element} />
+                                )}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Estoque</Text>
+                        <View style={styles.viewForm}>
+
+                            <Picker
+                                selectedValue={item.estoque}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("estoque", itemValue)}>
+                                {Dados.estoque.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Área</Text>
+                        <View style={styles.viewForm}>
+
+                            <Picker
+                                selectedValue={item.area}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("area", itemValue)}>
+                                {Dados.area.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Departamento</Text>
+                        <View style={styles.viewForm}>
+
+                            <Picker
+                                selectedValue={item.departamento}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("departamento", itemValue)}>
+                                {Dados.departamento.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Número de Série</Text>
+                        <View style={styles.viewForm}>
+
+                            <View style={{ flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                                <TextInput
+                                    style={{ height: 40, margin: 12, flex: 4 }}
+                                    onChangeText={(text) => refreshItem("serial", text)}
+                                    value={item.serial}
+                                    placeholder="Número de Série"
+                                />
+
+                                <TouchableOpacity style={{ flex: 1, direction: 'rtl', backgroundColor: "#ffc72c", marginEnd: 5, alignItems: "center", paddingVertical: 7 }}
+                                    onPress={() => scanner("serial")}>
+                                    <MaterialIcons name="qr-code-scanner" size={24} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+
+                        <Text style={styles.titleForm}>IMEI</Text>
+                        <View style={styles.viewForm}>
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("imei", text)}
+                                value={item.imei}
+                                placeholder="imei"
+                            />
+                        </View>
+
+
+                        <Text style={styles.titleForm}>Periodo de Reposição</Text>
+                        <View style={styles.viewForm}>
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("periodo_reposicao", text)}
+                                value={item.periodo_reposicao}
+                                placeholder="Periodo de reposição"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Fámilia</Text>
+                        <View style={styles.viewForm}>
+                            <Picker
+                                selectedValue={item.familia}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("familia", itemValue)}>
+                                {Dados.familia.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Marca</Text>
+                        <View style={styles.viewForm}>
+                            <Picker
+                                selectedValue={item.marca}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("marca", itemValue)}>
+                                {Dados.marca.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Modelo</Text>
+                        <View style={styles.viewForm}>
+
+                            <Picker
+                                selectedValue={item.modelo}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("modelo", itemValue)}>
+                                {Dados.modelo.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Tamanho</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("tamanho", text)}
+                                value={item.tamanho}
+                                placeholder="tamanho"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Quantidade</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("quantidade", text)}
+                                value={item.quantidade}
+                                placeholder="quantidade"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Etiqueta TI</Text>
+                        <View style={styles.viewForm}>
+
+                            <View style={{ flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                                <TextInput
+                                    style={{ height: 40, margin: 12, flex: 4 }}
+                                    onChangeText={(text) => refreshItem("etiqueta_ti", text)}
+                                    value={item.etiqueta_ti}
+                                    placeholder="Etiqueta TI"
+                                />
+
+
+                                <TouchableOpacity style={{ flex: 1, direction: 'rtl', backgroundColor: "#ffc72c", marginEnd: 5, alignItems: "center", paddingVertical: 7 }}
+                                    onPress={() => scanner("etiqueta_ti")}
+                                >
+                                    <MaterialIcons name="qr-code-scanner" size={24} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <Text style={styles.titleForm}>Responsável ID</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("responsavel_id", text)}
+                                value={item.responsavel_id}
+                                placeholder="responsavel id"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}> Responsável Nome</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("responsavel_nome", text)}
+                                value={item.responsavel_nome}
+                                placeholder="responsavel nome"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Termo de Responsábilidade</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("termo_responsabilidade", text)}
+                                value={item.termo_responsabilidade}
+                                placeholder="termo de responsabilidade"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Kit</Text>
+                        <View style={styles.viewForm}>
+
+                            <Picker
+                                selectedValue={item.kit}
+                                style={styles.pickerForm}
+                                onValueChange={(itemValue, itemIndex) => refreshItem("kit", itemValue)}>
+                                {Dados.kit.map(element => <Picker.Item label={element} value={element} />)}
+                            </Picker>
+                        </View>
+
+                        <Text style={styles.titleForm}>Gerente de TI</Text>
+                        <View style={styles.viewForm}>
+
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("gerente_ti", text)}
+                                value={item.gerente_ti}
+                                placeholder="Gerente de TI"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>numero de chamado/motivo</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("numero_chamado_motivo", text)}
+                                value={item.numero_chamado_motivo}
+                                placeholder="numero de chamado/motivo"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Nota Fiscal</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("nota_fiscal", text)}
+                                value={item.nota_fiscal}
+                                placeholder="Nota Fiscal"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Acesso</Text>
+                        <View style={styles.viewForm}>
+                           
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("acesso", text)}
+                                value={item.acesso}
+                                placeholder="acesso"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Observações</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("observacoes", text)}
+                                value={item.observacoes}
+                                placeholder="observações"
+                            />
+                        </View>
+
+                        <Text style={styles.titleForm}>Data de Cadastro</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <View style={{ flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                                <TextInput
+                                    style={{ height: 40, margin: 12, flex: 4 }}
+                                    //onChangeText={(text) => refreshItem("data_cadastro", text)}
+                                    value={item.data_cadastro}
+                                    placeholder="data de cadastro"
+                                />
+
+                                <TouchableOpacity style={{ flex: 1, direction: 'rtl', marginEnd: 5, alignItems: "center", paddingVertical: 7 }}
+                                    onPress={() => openDatePicker('data_cadastro')}
+                                >
+                                    <MaterialIcons name="date-range" size={24} color="#999" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <Text style={styles.titleForm}>Data de Atualização</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <View style={{ flexDirection: "row", alignContent: "center", alignItems: "center" }}>
+                                <TextInput
+                                    style={{ height: 40, margin: 12, flex: 4 }}
+                                    //onChangeText={(text) => refreshItem("data_atualizacao", text)}
+                                    value={item.data_atualizacao}
+                                    placeholder="data de atualização"
+                                />
+                                <TouchableOpacity style={{ flex: 1, direction: 'rtl', marginEnd: 5, alignItems: "center", paddingVertical: 7 }}
+                                    onPress={() => openDatePicker('data_atualizacao')}
+                                >
+                                    <MaterialIcons name="date-range" size={24} color="#999" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <Text style={styles.titleForm}>Usuário</Text>
+                        <View style={styles.viewForm}>
+                            
+                            <TextInput
+                                style={{ height: 40, margin: 12 }}
+                                onChangeText={(text) => refreshItem("usuario", text)}
+                                value={item.usuario}
+                                placeholder="usuario"
+                            />
+                        </View>
+
+                        <View style={{ flexDirection: "row", margin: 45 }}>
+                            <View style={{ backgroundColor: "blue", flex: 1, marginHorizontal: 5 }}>
+                                <Button
+                                    title="Insert"
+                                    onPress={() => insert()} />
+                            </View>
+
+                            <TouchableOpacity style={{
+                                backgroundColor: "#FF3322",
+                                flex: 1,
+                                marginHorizontal: 5,
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }}
+                                onPress={() => cleanForm()}
+                            >
+                                <Text style={{ color: "#FFF" }}>CLEAN</Text>
+                            </TouchableOpacity>
+
+                        </View>
+                    </View>
+                </ScrollView>
+
+
+
+                :
+                <BarCodeScanner
+                    onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                    style={StyleSheet.absoluteFill}
                 />
-            </View>
+
+            }
 
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>IMEI</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("imei", text)}
-                    value={item.imei}
-                    placeholder="imei"
+            {show && (
+                <DateTimePicker
+                    testID="dateTimePicker"
+                    value={date}
+                    mode={'date'}
+                    is24Hour={true}
+                    display="default"
+                    onChange={onChange}
                 />
-            </View>
-
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Periodo de Reposição</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("periodo_reposicao", text)}
-                    value={item.periodo_reposicao}
-                    placeholder="Periodo de reposição"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Fámilia</Text>
-                <Picker
-                    selectedValue={item.familia}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("familia", itemValue)}>
-                    {Dados.familia.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Marca</Text>
-                <Picker
-                    selectedValue={item.marca}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("marca", itemValue)}>
-                    {Dados.marca.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Modelo</Text>
-                <Picker
-                    selectedValue={item.modelo}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("modelo", itemValue)}>
-                    {Dados.modelo.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Tamanho</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("tamanho", text)}
-                    value={item.tamanho}
-                    placeholder="tamanho"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Quantidade</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("quantidade", text)}
-                    value={item.quantidade}
-                    placeholder="quantidade"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Etiqueta TI</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("etiqueta_ti", text)}
-                    value={item.etiqueta_ti}
-                    placeholder="Etiqueta TI"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Responsável ID</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("responsavel_id", text)}
-                    value={item.responsavel_id}
-                    placeholder="responsavel id"
-                />
-            </View>
-
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Responsável Nome</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("responsavel_nome", text)}
-                    value={item.responsavel_nome}
-                    placeholder="responsavel nome"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Termo de Responsábilidade</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("termo_responsabilidade", text)}
-                    value={item.termo_responsabilidade}
-                    placeholder="termo de responsabilidade"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Kit</Text>
-                <Picker
-                    selectedValue={item.kit}
-                    style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("kit", itemValue)}>
-                    {Dados.kit.map(element => <Picker.Item label={element} value={element} />)}
-                </Picker>
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Gerente de TI</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("gerente_ti", text)}
-                    value={item.gerente_ti}
-                    placeholder="Gerente de TI"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>numero de chamado/motivo</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("numero_chamado_motivo", text)}
-                    value={item.numero_chamado_motivo}
-                    placeholder="numero de chamado/motivo"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Nota Fiscal</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("nota_fiscal", text)}
-                    value={item.nota_fiscal}
-                    placeholder="Nota Fiscal"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Acesso</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("acesso", text)}
-                    value={item.acesso}
-                    placeholder="acesso"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Observações</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("observacoes", text)}
-                    value={item.observacoes}
-                    placeholder="observações"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Data de Cadastro</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("data_cadastro", text)}
-                    value={item.data_cadastro}
-                    placeholder="data de cadastro"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Data de Atualização</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("data_atualizacao", text)}
-                    value={item.data_atualizacao}
-                    placeholder="data de atualização"
-                />
-            </View>
-
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-                <Text>Usuário</Text>
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text) => refreshItem("usuario", text)}
-                    value={item.usuario}
-                    placeholder="usuario"
-                />
-            </View>
-
-            <View style={{ flexDirection: "row", margin: 45 }}>
-                <View style={{ backgroundColor: "blue", flex: 1, marginHorizontal: 5 }}>
-                    <Button
-                        title="Insert"
-                        onPress={() => insert()} />
-                </View>
-
-                <TouchableOpacity style={{
-                    backgroundColor: "#FF3322",
-                    flex: 1,
-                    marginHorizontal: 5,
-                    alignItems: "center",
-                    justifyContent: "center"
-                }}
-                    onPress={() => setItem([])}
-                >
-                    <Text style={{ color: "#FFF" }}>CLEAN</Text>
-                </TouchableOpacity>
-
-            </View>
-
-
-
-
-        </ScrollView>
-
-    )
+            )}
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-
+    container: {
+        flex: 1,
+        marginTop: 100,//StatusBar.currentHeight || 0,
+        marginHorizontal: 15
+    },
+    scroolLayout: { backgroundColor: "#ddd", padding: 10, borderRadius: 5, borderColor: "#ccc", borderWidth: 1 },
+    titleForm: { margin: 5, fontFamily: "monospace", fontStyle: "normal", color: "black" },
+    viewForm: { backgroundColor: "#eee", borderRadius: 15, borderWidth: 1, borderColor: "#ccc", overflow: "hidden", padding: 0, marginBottom: 35 },
+    pickerForm: { height: 50 },
 
 });
-
-

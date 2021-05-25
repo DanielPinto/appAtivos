@@ -14,7 +14,11 @@ const MainStak = createStackNavigator();
 export default function App (){
   return(
     <NavigationContainer>
-      <MainStak.Navigator initialRouteName="Home">
+      <MainStak.Navigator initialRouteName="Home"
+        screenOptions={{
+          headerShown: false
+        }}
+      >
         <MainStak.Screen name="Home" component={HomeScreen} />
         <MainStak.Screen name="Lista" component={ListScreen} />
         <MainStak.Screen name="Cadastrar" component={StoreScreen} />
