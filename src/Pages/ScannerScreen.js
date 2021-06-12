@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Button, FlatList, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import Product from "../Database/Models/Product";
 import FormEditItem from '../Components/FormEditItem';
@@ -15,6 +17,7 @@ export default function ScannerScreen() {
   const [item, setItem] = useState([]);
   const [tag, setTag] = useState(null);
   const [modalVisible, setmodalVisible] = useState(false);
+  const [modalStatusVisible, setmodalStatusVisible] = useState(false);
   const [itemForSelect, setItemForSelect] = useState([]);
   const [itemForUpdate, setItemForUpdate] = useState([]);
 
@@ -22,10 +25,12 @@ export default function ScannerScreen() {
 
 
   useEffect(() => {
+
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
+
   }, []);
 
 
@@ -33,40 +38,38 @@ export default function ScannerScreen() {
 
     if (tag != null) {
 
-
       Product.getItemByTag(tag).then(
         (itemRead) => {
           if (itemRead.length > 0) {
-            console.log(itemRead);
             setItem(itemRead);
           } else {
-            console.log(itemRead);
             alert(tag + " - não encontrado!")
           }
 
         }
       ).catch(
-        error => console.log(error),
+        error => console.log(error)
       );
     }
 
   }, [tag]);
 
 
-
   useEffect(() => {
+
+
     setItemForUpdate(getValuesOfObject(itemForSelect));
+
   }, [itemForSelect])
 
 
   const handleBarCodeScanned = ({ data }) => {
 
-    console.log(data);
     setTag(data);
-    console.log("handle: " + tag);
     setScanned(true);
 
   };
+
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -75,49 +78,114 @@ export default function ScannerScreen() {
     return <Text>No access to camera</Text>;
   }
 
+  const setStatus = async (st) => {
+
+    setItemForSelect({
+      ...itemForSelect,
+      ["status"]: st
+    });
+
+
+  };
+
+
 
   const updateItem = () => {
-    setmodalVisible(!modalVisible);
+
+    if (modalVisible)
+      setmodalVisible(!modalVisible)
+
     Product.update(itemForSelect.id, itemForUpdate).then((value) => {
       setTag(null);
       setTag(itemForSelect.etiqueta_ti);
     });
+
   }
 
 
   const Item = ({ item, backgroundColor, textColor }) => (
     <View style={[styles.item, backgroundColor]}>
-      <Text style={[styles.title, textColor]}> Unidade: {item.nome_unidade}</Text>
-      <Text style={[styles.title, textColor]}> Marca: {item.marca}</Text>
-      <Text style={[styles.title, textColor]}> Modelo: {item.modelo}</Text>
-      <Text style={[styles.title, textColor]}> Área: {item.area}</Text>
-      <Text style={[styles.title, textColor]}> Departamento: {item.departamento}</Text>
-      <Text style={[styles.title, textColor]}> Usuário: {item.usuario}</Text>
-
-      <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-
-        <TouchableOpacity style={{ paddingHorizontal: 5 }}>
-          <Ionicons name="md-trash-outline"
-            size={32}
-            color="red"
-            onPress={() => {
-
-              setmodalVisible(!modalVisible)
-            }} />
-
-        </TouchableOpacity >
-
-        <TouchableOpacity style={{ paddingHorizontal: 5 }}>
-          <Ionicons name="create-outline"
-            size={32}
-            color="orange"
-            onPress={() => {
-              setItemForSelect(item)
-              setmodalVisible(!modalVisible)
-            }} />
-        </TouchableOpacity>
+      <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between" }}>
+        <View>
+          <Text style={[styles.title, textColor]}> Unidade: {item.nome_unidade}</Text>
+          <Text style={[styles.title, textColor]}> Marca: {item.marca}</Text>
+          <Text style={[styles.title, textColor]}> Modelo: {item.modelo}</Text>
+          <Text style={[styles.title, textColor]}> Área: {item.area}</Text>
+          <Text style={[styles.title, textColor]}> Departamento: {item.departamento}</Text>
+          <Text style={[styles.title, textColor]}> Serial: {item.serial}</Text>
+        </View>
 
       </View>
+
+      <View style={{ flex: 3, flexDirection: "row", marginTop: 15 }}>
+
+        {
+          item.status == 0
+          &&
+          <TouchableOpacity 
+          style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
+          onPress={() => {
+            setItemForSelect(item)
+            setmodalVisible(!modalStatusVisible)
+          }} >
+            <MaterialCommunityIcons name="null" size={24} color="red" />
+            <Text style={{ fontSize: 10, marginRight: 15 }}>Sem Registro</Text>
+          </TouchableOpacity>
+        }
+
+        {
+          item.status == 1
+          &&
+          <TouchableOpacity
+          style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
+          onPress={() => {
+            setItemForSelect(item)
+            setmodalVisible(!modalStatusVisible)
+          }} >
+            <MaterialCommunityIcons name="edit-attributes" size={24} color="orange" />
+            <Text>Editado</Text>
+          </TouchableOpacity>
+        }
+
+        {
+          item.status == 2
+          &&
+          <TouchableOpacity style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
+          onPress={() => {
+            setItemForSelect(item)
+            setmodalVisible(!modalStatusVisible)
+          }} >
+            <MaterialCommunityIcons name="check" size={24} color="green" />
+            <Text>OK</Text>
+          </TouchableOpacity>
+        }
+
+        <View style={{ flex: 2, flexDirection: "row", justifyContent: "flex-end" }}>
+
+          <TouchableOpacity style={{ paddingHorizontal: 5 }}>
+            <Ionicons name="md-trash-outline"
+              size={32}
+              color="red"
+              onPress={() => {
+
+                setmodalVisible(!modalVisible)
+              }} />
+
+          </TouchableOpacity >
+
+          <TouchableOpacity style={{ paddingHorizontal: 5 }}>
+            <Ionicons name="create-outline"
+              size={32}
+              color="orange"
+              onPress={() => {
+                setItemForSelect(item)
+                setmodalVisible(!modalVisible)
+              }} />
+          </TouchableOpacity>
+
+        </View>
+      </View>
+
 
     </View>
 
@@ -136,7 +204,6 @@ export default function ScannerScreen() {
       />
     );
   };
-
 
 
   return (
@@ -171,24 +238,24 @@ export default function ScannerScreen() {
                 />
 
 
-                <View style={{flexDirection:"row", margin:45}}>
+                <View style={{ flexDirection: "row", margin: 45 }}>
 
-                  <View style={{ backgroundColor:"blue", flex:1, marginHorizontal:5 }}>
+                  <View style={{ backgroundColor: "blue", flex: 1, marginHorizontal: 5 }}>
                     <Button
                       title="Update"
                       onPress={() => updateItem()} />
                   </View>
 
-                  <TouchableOpacity style={{ 
-                    backgroundColor:"#FF3322",
-                    flex:1, 
-                    marginHorizontal:5,
-                    alignItems:"center",
-                    justifyContent:"center"
-                    }}
-                    onPress={()=>setmodalVisible(!modalVisible)}
-                    >
-                    <Text style={{color:"#FFF"}}>CANCEL</Text>
+                  <TouchableOpacity style={{
+                    backgroundColor: "#FF3322",
+                    flex: 1,
+                    marginHorizontal: 5,
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                    onPress={() => setmodalVisible(!modalVisible)}
+                  >
+                    <Text style={{ color: "#FFF" }}>CANCEL</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -261,5 +328,3 @@ const styles = StyleSheet.create({
   }
 
 });
-
-

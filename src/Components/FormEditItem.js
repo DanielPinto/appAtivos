@@ -5,6 +5,7 @@ import Dados from '../Functions/Dados';
 
 
 
+
 const FormEditItem = (props) => {
 
     const deviceWidth = Dimensions.get('window').width;
@@ -16,12 +17,13 @@ const FormEditItem = (props) => {
 
     }, [item]);
 
-    const refreshItem = (field, element) => {
+    //const ifNotModify = (a, b) => a === b;
 
+    const refreshItem = (field, element) => {
         setItem({
             ...item,
             [field]: element
-        })
+        });
 
     };
 
@@ -52,9 +54,9 @@ const FormEditItem = (props) => {
             <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
                 <Text>Unidade</Text>
                 <Picker
-                    selectedValue={item.unidade}
+                    selectedValue={item.nome_unidade}
                     style={{ height: 50, width: deviceWidth - 100 }}
-                    onValueChange={(itemValue, itemIndex) => refreshItem("unidade", itemValue)}>
+                    onValueChange={(itemValue, itemIndex) => refreshItem("nome_unidade", itemValue)}>
                     {Dados.unidade.map(element =>
 
                         <Picker.Item label={element} value={element} />
@@ -96,7 +98,7 @@ const FormEditItem = (props) => {
                 <Text>Número de Série</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.serial}
+                    onChangeText={(text) => refreshItem("serial", text)}
                     value={item.serial}
                     placeholder="Número de Série"
                 />
@@ -107,7 +109,7 @@ const FormEditItem = (props) => {
                 <Text>IMEI</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.imei}
+                    onChangeText={(text) => refreshItem("imei", text)}
                     value={item.imei}
                     placeholder="imei"
                 />
@@ -118,7 +120,7 @@ const FormEditItem = (props) => {
                 <Text>Periodo de Reposição</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.periodo_reposicao}
+                    onChangeText={(text) => refreshItem("periodo_reposicao", text)}
                     value={item.periodo_reposicao}
                     placeholder="Periodo de reposição"
                 />
@@ -157,7 +159,7 @@ const FormEditItem = (props) => {
                 <Text>Tamanho</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.tamanho}
+                    onChangeText={(text) => refreshItem("tamanho", text)}
                     value={item.tamanho}
                     placeholder="tamanho"
                 />
@@ -167,7 +169,7 @@ const FormEditItem = (props) => {
                 <Text>Quantidade</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.quantidade}
+                    onChangeText={(text) => refreshItem("quantidade", text)}
                     value={item.quantidade}
                     placeholder="quantidade"
                 />
@@ -177,7 +179,7 @@ const FormEditItem = (props) => {
                 <Text>Etiqueta TI</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.etiqueta_ti}
+                    onChangeText={(text) => refreshItem("etiqueta_ti", text)}
                     value={item.etiqueta_ti}
                     placeholder="Etiqueta TI"
                 />
@@ -187,7 +189,7 @@ const FormEditItem = (props) => {
                 <Text>Responsável ID</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.responsavel_id}
+                    onChangeText={(text) => refreshItem("responsavel_id", text)}
                     value={item.responsavel_id}
                     placeholder="responsavel id"
                 />
@@ -198,7 +200,7 @@ const FormEditItem = (props) => {
                 <Text>Responsável Nome</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.responsavel_nome}
+                    onChangeText={(text) => refreshItem("responsavel_nome", text)}
                     value={item.responsavel_nome}
                     placeholder="responsavel nome"
                 />
@@ -208,7 +210,7 @@ const FormEditItem = (props) => {
                 <Text>Termo de Responsábilidade</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.termo_responsabilidade}
+                    onChangeText={(text) => refreshItem("termo_responsabilidade", text)}
                     value={item.termo_responsabilidade}
                     placeholder="termo de responsabilidade"
                 />
@@ -228,7 +230,7 @@ const FormEditItem = (props) => {
                 <Text>Gerente de TI</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.gerente_ti}
+                    onChangeText={(text) => refreshItem("gerente_ti", text)}
                     value={item.gerente_ti}
                     placeholder="Gerente de TI"
                 />
@@ -238,7 +240,7 @@ const FormEditItem = (props) => {
                 <Text>numero de chamado/motivo</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.numero_chamado_motivo}
+                    onChangeText={(text) => refreshItem("numero_chamado_motivo", text)}
                     value={item.numero_chamado_motivo}
                     placeholder="numero de chamado/motivo"
                 />
@@ -248,7 +250,7 @@ const FormEditItem = (props) => {
                 <Text>Nota Fiscal</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.nota_fiscal}
+                    onChangeText={(text) => refreshItem("nota_fiscal", text)}
                     value={item.nota_fiscal}
                     placeholder="Nota Fiscal"
                 />
@@ -258,7 +260,7 @@ const FormEditItem = (props) => {
                 <Text>Acesso</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.acesso}
+                    onChangeText={(text) => refreshItem("acesso", text)}
                     value={item.acesso}
                     placeholder="acesso"
                 />
@@ -268,7 +270,7 @@ const FormEditItem = (props) => {
                 <Text>Observações</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.observacoes}
+                    onChangeText={(text) => refreshItem("observacoes", text)}
                     value={item.observacoes}
                     placeholder="observações"
                 />
@@ -278,7 +280,7 @@ const FormEditItem = (props) => {
                 <Text>Data de Cadastro</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.data_cadastro}
+                    onChangeText={(text) => refreshItem("data_cadastro", text)}
                     value={item.data_cadastro}
                     placeholder="data de cadastro"
                 />
@@ -288,7 +290,7 @@ const FormEditItem = (props) => {
                 <Text>Data de Atualização</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={item.data_atualizacao}
+                    onChangeText={(text) => refreshItem("data_atualizacao", text)}
                     value={item.data_atualizacao}
                     placeholder="data de atualização"
                 />
@@ -298,13 +300,13 @@ const FormEditItem = (props) => {
                 <Text>Usuário</Text>
                 <TextInput
                     style={{ height: 40, margin: 12 }}
-                    onChangeText={(text)=>refreshItem("usuario", text)}
+                    onChangeText={(text) => refreshItem("usuario", text)}
                     value={item.usuario}
                     placeholder="usuario"
                 />
             </View>
 
-            
+
 
 
         </ScrollView>

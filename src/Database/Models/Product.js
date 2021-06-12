@@ -1,6 +1,6 @@
 import db from '../SQLiteDatabase';
 
-const headers = "codigo,estoque,mundo,"+
+const headers = "status,codigo,estoque,mundo,"+
 "regional,nome_unidade,departamento,area,"+
 "serial,imei,periodo_reposicao,familia,marca,"+
 "modelo,tamanho,quantidade,etiqueta_ti,responsavel_id,"+
@@ -13,11 +13,12 @@ db.transaction(tx=>{
    
     //usar durante os testes
     
-    //tx.executeSql("DROP TABLE products;");
+    tx.executeSql("DROP TABLE products;");
     
     tx.executeSql(
         "CREATE TABLE IF NOT EXISTS products (" +
         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+        "status TEXTO," +
         "codigo TEXTO," +
         "estoque TEXTO," +
         "mundo TEXTO," +
@@ -60,7 +61,7 @@ const create = (obj) => {
       db.transaction((tx) => {
         //comando SQL modificável
         tx.executeSql(
-          "INSERT INTO products (" + headers + " ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+          "INSERT INTO products (" + headers + " ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
            obj,
           //-----------------------
           (_, { rowsAffected, insertId }) => {
@@ -114,9 +115,13 @@ const create = (obj) => {
   const update = (id, obj) => {
     return new Promise((resolve, reject) => {
       db.transaction((tx) => {
+
+        console.log("Upadate")
+        console.log(obj, id)
         //comando SQL modificável
         tx.executeSql(
           "UPDATE products SET " + 
+          "status=?," +
           "codigo=?," +
           "estoque=?," +
           "mundo=?," +
@@ -155,10 +160,38 @@ const create = (obj) => {
           },
           (_, error) => reject(error) // erro interno em tx.executeSql
         );
+      
+      
       });
     });
   };
 
+
+  const updateStatus = (id, status) => {
+    return new Promise((resolve, reject) => {
+      db.transaction((tx) => {
+
+        console.log("UpadateStatus")
+        console.log(status, id)
+        //comando SQL modificável
+        tx.executeSql(
+          "UPDATE products SET " + 
+          "status=? " +
+          "WHERE id="+id+";",
+          status,
+          
+          //-----------------------
+          (_, { rowsAffected }) => {
+            if (rowsAffected > 0) resolve(rowsAffected);
+            else reject("Error updating status: id= " + id); // nenhum registro alterado
+          },
+          (_, error) => reject(error) // erro interno em tx.executeSql
+        );
+      
+      
+      });
+    });
+  };
 
   const remove = (id) => {
     return new Promise((resolve, reject) => {
@@ -236,4 +269,5 @@ const create = (obj) => {
     removeTable,
     getIten,
     getItemByTag,
+    updateStatus,
   };

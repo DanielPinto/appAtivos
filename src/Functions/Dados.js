@@ -1,5 +1,5 @@
 const dados = {
-    headers: ["codigo", "estoque", "mundo",
+    headers: ["status","codigo", "estoque", "mundo",
         "regional", "nome_unidade", "departamento",
         "area", "serial", "imei", "periodo_reposicao",
         "familia", "marca", "modelo", "tamanho",
@@ -10,6 +10,7 @@ const dados = {
         "data_atualizacao", "usuario"],
 
     ObjectClean: {
+        "status":"",
         "codigo": "",
         "estoque": "",
         "mundo": "",

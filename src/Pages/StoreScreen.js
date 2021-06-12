@@ -63,9 +63,12 @@ export default function StoreScreen() {
     const insert = async () => {
 
         try {
+            
             let objectForInsert = getValuesOfObject(item);
+            objectForInsert.status="1";
+            console.log(objectForInsert)
             let idInserted = await Product.create(objectForInsert)
-            alert("Item inserido!")
+            alert("Item inserido: " + idInserted)
             setItem({
                 ...item,
                 ["serial"]: "",

@@ -15,8 +15,10 @@ const getObject = (csv)=>{
             
                 let currentline=lines[i].split(";");
 
-                console.log(currentline.length +" - "+ i);
+                currentline.unshift("0");
+                console.log(currentline.length +" - "+ currentline);
             
+
                 if(currentline.length > 1)
                     result.push(currentline)
             }
