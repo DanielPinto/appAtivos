@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import Product from "../Database/Models/Product";
 import FormEditItem from '../Components/FormEditItem';
+import FormEditStatus from '../Components/FormEditStatus';
 import getValuesOfObject from '../Functions/GetValuesOfObject';
 
 export default function ScannerScreen() {
@@ -78,22 +79,12 @@ export default function ScannerScreen() {
     return <Text>No access to camera</Text>;
   }
 
-  const setStatus = async (st) => {
-
-    setItemForSelect({
-      ...itemForSelect,
-      ["status"]: st
-    });
-
-
-  };
-
-
 
   const updateItem = () => {
 
-    if (modalVisible)
-      setmodalVisible(!modalVisible)
+    modalVisible ? setmodalVisible(!modalVisible) : null;
+
+    modalStatusVisible ? setmodalStatusVisible(!modalStatusVisible) : null;
 
     Product.update(itemForSelect.id, itemForUpdate).then((value) => {
       setTag(null);
@@ -122,12 +113,12 @@ export default function ScannerScreen() {
         {
           item.status == 0
           &&
-          <TouchableOpacity 
-          style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
-          onPress={() => {
-            setItemForSelect(item)
-            setmodalVisible(!modalStatusVisible)
-          }} >
+          <TouchableOpacity
+            style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems: "center" }}
+            onPress={() => {
+              setItemForSelect(item)
+              setmodalStatusVisible(!modalStatusVisible)
+            }} >
             <MaterialCommunityIcons name="null" size={24} color="red" />
             <Text style={{ fontSize: 10, marginRight: 15 }}>Sem Registro</Text>
           </TouchableOpacity>
@@ -137,12 +128,12 @@ export default function ScannerScreen() {
           item.status == 1
           &&
           <TouchableOpacity
-          style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
-          onPress={() => {
-            setItemForSelect(item)
-            setmodalVisible(!modalStatusVisible)
-          }} >
-            <MaterialCommunityIcons name="edit-attributes" size={24} color="orange" />
+            style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems: "center" }}
+            onPress={() => {
+              setItemForSelect(item)
+              setmodalStatusVisible(!modalStatusVisible)
+            }} >
+            <MaterialIcons name="edit-attributes" size={24} color="orange" />
             <Text>Editado</Text>
           </TouchableOpacity>
         }
@@ -150,11 +141,11 @@ export default function ScannerScreen() {
         {
           item.status == 2
           &&
-          <TouchableOpacity style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems:"center"}}
-          onPress={() => {
-            setItemForSelect(item)
-            setmodalVisible(!modalStatusVisible)
-          }} >
+          <TouchableOpacity style={{ flex: 1, flexDirection: "row", marginTop: 15, alignItems: "center" }}
+            onPress={() => {
+              setItemForSelect(item)
+              setmodalStatusVisible(!modalStatusVisible)
+            }} >
             <MaterialCommunityIcons name="check" size={24} color="green" />
             <Text>OK</Text>
           </TouchableOpacity>
@@ -168,7 +159,7 @@ export default function ScannerScreen() {
               color="red"
               onPress={() => {
 
-                setmodalVisible(!modalVisible)
+                //setmodalVisible(!modalVisible)
               }} />
 
           </TouchableOpacity >
@@ -254,6 +245,51 @@ export default function ScannerScreen() {
                     justifyContent: "center"
                   }}
                     onPress={() => setmodalVisible(!modalVisible)}
+                  >
+                    <Text style={{ color: "#FFF" }}>CANCEL</Text>
+                  </TouchableOpacity>
+                </View>
+
+              </View>
+            </View>
+          </Modal>
+
+
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalStatusVisible}
+            onRequestClose={() => {
+              alert("Modal has been closed.");
+              setmodalStatusVisible(!modalStatusVisible);
+            }}>
+            <View style={styles.centeredView}>
+              <View style={[styles.modalView, { height: modal_height - 50 }]}>
+
+                <FormEditStatus
+                  itemForSelect={itemForSelect}
+                  setItemForSelect={setItemForSelect}
+                //onValueChange={(itemValue, itemIndex) => setSelectedItem(itemValue)}
+                />
+
+
+                <View style={{ flexDirection: "row", margin: 45 }}>
+
+                  <View style={{ backgroundColor: "blue", flex: 1, marginHorizontal: 5 }}>
+                    <Button
+                      title="Update"
+                      onPress={() => updateItem()} />
+                  </View>
+
+                  <TouchableOpacity style={{
+                    backgroundColor: "#FF3322",
+                    flex: 1,
+                    marginHorizontal: 5,
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                    onPress={() => setmodalStatusVisible(!modalStatusVisible)}
                   >
                     <Text style={{ color: "#FFF" }}>CANCEL</Text>
                   </TouchableOpacity>

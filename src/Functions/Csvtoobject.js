@@ -1,12 +1,14 @@
-const getObject = (csv)=>{
+const getObject = (csv, setUnitPercent, setTotalLines)=>{
  
     return new Promise((resolve, reject)=>{
         
         try {
         
             var lines=csv.split('\n');
+
+            setTotalLines(lines.length - 1);
   
-            console.log(lines.length);
+            setUnitPercent((lines.length - 1)/100);
     
             var result = [];
     
@@ -16,7 +18,6 @@ const getObject = (csv)=>{
                 let currentline=lines[i].split(";");
 
                 currentline.unshift("0");
-                console.log(currentline.length +" - "+ currentline);
             
 
                 if(currentline.length > 1)

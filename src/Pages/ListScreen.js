@@ -27,7 +27,7 @@ export default function ListScreen() {
 
 
     const renderItem = ({ item }) => {
-        const backgroundColor = item.codigo === selectedId.codigo ? "#ffc72c" : "#f0f0f0";
+        const backgroundColor = item.codigo === selectedId.codigo ? "#ffc72c" : "#e0e0e0";
         const color = item.Código === selectedId.codigo ? 'black' : '#555';
 
         return (

@@ -1,6 +1,6 @@
 import Product from "../Database/Models/Product";
 
-const setCsvToDatabase = async (objects)=>{
+const setCsvToDatabase = async (objects, setQuantInserted)=>{
 
     try {
 
@@ -17,6 +17,7 @@ const setCsvToDatabase = async (objects)=>{
 
             let id = await Product.create(element)
             idsInserted.push(id);
+            setQuantInserted(i);
             console.log('Product created with id: '+ id)
         }
         

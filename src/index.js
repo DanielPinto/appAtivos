@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Button, Text, View, Modal, Dimensions, TouchableOpacity , TextInput} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, StyleSheet, Button, Text, View, Modal, Dimensions, TouchableOpacity, TextInput, ActivityIndicator, Touchable } from 'react-native';
 
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 
 import getObject from './Functions/Csvtoobject';
-import setCsvToDatabase from './Functions/SetCsvToDatabase';
+//import setCsvToDatabase from './Functions/SetCsvToDatabase';
 import setDatabaseToCsv from './Functions/SetDatabaseToCsv';
 import Product from "./Database/Models/Product";
 
@@ -14,44 +14,81 @@ import Product from "./Database/Models/Product";
 export default function Home(props) {
 
 
-  const message = 'Ler Arquivo CSV';
-  const [selectedId, setSelectedId] = useState([]);
-  const [flagOperation, setFlagOperation] = useState(message);
+
+
+
+  const [percentInserted, setPercentInserted] = useState(0);
+  const [quantInserted, setQuantInserted] = useState(0);
+  const [unitPercent, setUnitPercent] = useState(0);
+  const [totalLines, setTotalLines] = useState(0);
+
+  const [objects, setObjects] = useState([]);
+  const [index, setIndex] = useState(null);
 
   const [modalVisible, setmodalVisible] = useState(false);
+  const [modalIndicator, setmodalIndicator] = useState(false);
   const [email, setEmail] = useState('');
   const modal_height = Dimensions.get('window').height;
 
 
+  useEffect(() => {
+
+    const percent = Math.round(quantInserted / unitPercent);
+    setPercentInserted(percent);
+
+  }, [quantInserted]);
+
+
+  useEffect(() => {
+
+    if (objects.length > 0) {
+
+      setIndex(1);
+      
+    }
+
+  }, [objects]);
+
+  useEffect(()=>{
+    
+    if(index != null && modalIndicator && index <= totalLines){
+      Product.create(objects[index]).then(id => {
+        console.log("item inserido: " + id);
+        setQuantInserted(quantInserted + 1);
+        setIndex(index + 1);
+      }
+      
+      ).catch(error => console.log(error));
+    }
+
+    setmodalIndicator(false)
+
+    
+  }, [index]);
 
   async function getDocument() {
+    try {
 
-    setFlagOperation('Leitura do arquivo em andamento...');
+      console.log("ler Documento");
+      const res = await DocumentPicker.getDocumentAsync();
 
-    DocumentPicker.getDocumentAsync()
-      .then((res) => {
+      setmodalIndicator(true);
+      console.log(modalIndicator);
+      console.log("ler Arquivo");
+      const file = await FileSystem.readAsStringAsync(res.uri);
 
-        return FileSystem.readAsStringAsync(res.uri);
+      console.log("pegar objeto");
+      const objects_returned = await getObject(file, setUnitPercent, setTotalLines);
 
-      }).then((file) => {
-
-        return getObject(file);
-
-      }).then((objects) => {
-
-        return setCsvToDatabase(objects);
-
-      }).then((idsInserteds) => {
+      console.log("setObjects");
+      setObjects(objects_returned);
 
 
-        alert(idsInserteds + ' linhas inseridas!');
 
-        setFlagOperation(message);
+    } catch (erro) {
 
-      }).catch(erro => {
-
-        console.log("Erro read/insert: " + erro)
-      });
+      console.log("Erro read/insert: " + erro)
+    };
 
   };
 
@@ -62,8 +99,8 @@ export default function Home(props) {
 
       const allProducts = await Product.all();
 
-      const emailSent = {"email": email}
-      
+      const emailSent = { "email": email }
+
       const body = [];
 
       body.push(allProducts);
@@ -77,7 +114,7 @@ export default function Home(props) {
       console.log(jsonProducts);
 
 
-      
+
       let csv = 'string';
 
       csv = await fetch('https://danptec.com/Field/mail.php', {
@@ -94,9 +131,9 @@ export default function Home(props) {
 
       setmodalVisible(!modalVisible)
 
-      csv.status == 200 ? 
-      alert("Documento enviado por email!") 
-      : alert("Erro ao enviar o email!")
+      csv.status == 200 ?
+        alert("Documento enviado por email!")
+        : alert("Erro ao enviar o email!")
 
 
     } catch (error) {
@@ -108,7 +145,8 @@ export default function Home(props) {
 
     //console.log("index - csv: " + csv)
 
-  }
+  };
+
 
 
 
@@ -118,7 +156,7 @@ export default function Home(props) {
       .then(
         prod => alert(prod + " itens removidos!")
       )
-  }
+  };
 
 
 
@@ -132,9 +170,31 @@ export default function Home(props) {
       <Modal
         animationType="slide"
         transparent={true}
+        visible={modalIndicator}
+        onRequestClose={() => {
+          setmodalIndicator(false);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+
+            <ActivityIndicator size="large" color="green" />
+            <Text>{percentInserted}%</Text>
+            <Text>{quantInserted} de {totalLines} inseridos</Text>
+            <Button 
+            title="Cancel" 
+            onPress={() => setmodalIndicator(false)}/>
+
+          </View>
+        </View>
+      </Modal>
+
+
+      <Modal
+        animationType="slide"
+        transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          alert("Modal has been closed.");
+          alert("Ação encerrada.");
           setmodalVisible(!modalVisible);
         }}>
 
@@ -143,14 +203,14 @@ export default function Home(props) {
 
             <Text>Enviar arquivo por Email</Text>
 
-          <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-               
-                <TextInput
-                    style={{ height: 40, margin: 12 }}
-                    onChangeText={(text)=>setEmail(text)}
-                    value={email}
-                    placeholder="digite o email para envio..."
-                />
+            <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
+
+              <TextInput
+                style={{ height: 40, margin: 12 }}
+                onChangeText={(text) => setEmail(text)}
+                value={email}
+                placeholder="digite o email para envio..."
+              />
             </View>
 
             <View style={{ flexDirection: "row", margin: 45 }}>
@@ -184,7 +244,10 @@ export default function Home(props) {
 
         <Button
           title="Upload CSV"
-          onPress={() => getDocument()} />
+          onPress={() => {
+            setmodalIndicator(true);
+            getDocument()
+          }} />
 
       </View>
 
@@ -274,6 +337,102 @@ const styles = StyleSheet.create({
 
 
 
+console.log("ler Documento");
+      const res = await DocumentPicker.getDocumentAsync();
+
+      setmodalIndicator(true);
+      console.log(modalIndicator);
+      console.log("ler Arquivo");
+      const file = await FileSystem.readAsStringAsync(res.uri);
+
+      console.log("pegar objeto");
+      const objects = await getObject(file, setUnitPercent);
+
+      console.log("inserir dados");
+      const idsInserteds = await csvToDatabase(objects);
+
+      console.log("Final");
+      setmodalIndicator(false);
+      alert(idsInserteds+ " inseridas")
+
+DocumentPicker.getDocumentAsync()
+      .then((res) => {
+        setmodalIndicator(true);
+        return FileSystem.readAsStringAsync(res.uri);
+
+      }).then((file) => {
+
+
+        return getObject(file, setUnitPercent);
+
+      }).then((objects) => {
+
+
+        return csvToDatabase(objects);
+
+      }).then((idsInserteds) => {
+
+        setmodalIndicator(false);
+
+      }).catch(erro => {
+
+        console.log("Erro read/insert: " + erro)
+      });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      async function csvToDatabase(objects) {
+    console.log("entrando no csvToDatabase")
+    try {
+
+      const idsInserted = [];
+
+      for (let i = 0; i < objects.length; i++) {
+
+        let element = objects[i];
+
+
+        if (!element.length > 1)
+          return;
+
+        if (!modalIndicator) {
+          console.log("modalIndicator: " + modalIndicator);
+          break;
+        }
+
+
+        let id = await Product.create(element)
+
+        console.log("modalIndicator: " + modalIndicator);
+        console.log(id);
+        idsInserted.push(id);
+        setQuantInserted(i);
+        console.log('Product created with id: ' + id)
+      }
+
+      return idsInserted.length;
+
+    } catch (error) {
+
+      return error;
+    }
+  };
 
 
 

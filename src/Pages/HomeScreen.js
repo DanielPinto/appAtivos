@@ -14,7 +14,7 @@ function HomeScreen(props) {
     return (
       
       <SafeAreaView style={styles.container}>
-        <Home/>
+        <Home navigation = {props.navigation} />
 
         <View
           style={{
