@@ -248,8 +248,8 @@ const create = (obj) => {
       db.transaction((tx) => {
         //comando SQL modificável
         tx.executeSql(
-          "SELECT * FROM products WHERE etiqueta_ti = ?;",
-          [tag],
+          "SELECT * FROM products WHERE etiqueta_ti = ? OR serial = ?;",
+          [tag,tag],
           //-----------------------
           (_, { rows }) => {resolve(rows._array);},
           (_, error) => {reject(error)}// erro interno em tx.executeSql
