@@ -12,8 +12,7 @@ const headers = "status,codigo,estoque,mundo,"+
 db.transaction(tx=>{
    
     //usar durante os testes
-    
-    tx.executeSql("DROP TABLE products;");
+    //tx.executeSql("DROP TABLE products;");
     
     tx.executeSql(
         "CREATE TABLE IF NOT EXISTS products (" +

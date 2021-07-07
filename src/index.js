@@ -1,122 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Button, Text, View, Modal, Dimensions, TouchableOpacity, TextInput, ActivityIndicator, Touchable } from 'react-native';
-
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-
 import getObject from './Functions/Csvtoobject';
 //import setCsvToDatabase from './Functions/SetCsvToDatabase';
 import setDatabaseToCsv from './Functions/SetDatabaseToCsv';
 import Product from "./Database/Models/Product";
 
-
-
 export default function Home(props) {
-
-
-
-
-
   const [percentInserted, setPercentInserted] = useState(0);
   const [quantInserted, setQuantInserted] = useState(0);
   const [unitPercent, setUnitPercent] = useState(0);
   const [totalLines, setTotalLines] = useState(0);
-
   const [objects, setObjects] = useState([]);
   const [index, setIndex] = useState(null);
-
   const [modalVisible, setmodalVisible] = useState(false);
   const [modalIndicator, setmodalIndicator] = useState(false);
+  const [modalRemoveTable, setModalRemoveTable] = useState(false);
+  const [indicatorEmailSent, setIndicatorEmailSent] = useState(false);
   const [email, setEmail] = useState('');
   const modal_height = Dimensions.get('window').height;
 
-
   useEffect(() => {
-
     const percent = Math.round(quantInserted / unitPercent);
     setPercentInserted(percent);
-
   }, [quantInserted]);
 
-
   useEffect(() => {
-
     if (objects.length > 0) {
-
       setIndex(1);
-      
     }
-
   }, [objects]);
 
-  useEffect(()=>{
-    
-    if(index != null && modalIndicator && index <= totalLines){
+  useEffect(() => {
+    if (index != null && modalIndicator && index <= totalLines) {
       Product.create(objects[index]).then(id => {
         console.log("item inserido: " + id);
         setQuantInserted(quantInserted + 1);
         setIndex(index + 1);
-      }
-      
-      ).catch(error => console.log(error));
+      }).catch(error => console.log(error));
+    } else {
+      setmodalIndicator(false)
+      setPercentInserted(0)
+      setQuantInserted(0);
+      setUnitPercent(0);
+      setTotalLines(0);
+      setObjects([]);
+      setIndex(null);
     }
-
-    setmodalIndicator(false)
-
-    
   }, [index]);
 
   async function getDocument() {
     try {
-
-      console.log("ler Documento");
+      
       const res = await DocumentPicker.getDocumentAsync();
+      
+      if(res.type === "cancel")
+        return null;
 
       setmodalIndicator(true);
-      console.log(modalIndicator);
-      console.log("ler Arquivo");
+
       const file = await FileSystem.readAsStringAsync(res.uri);
-
-      console.log("pegar objeto");
+      
       const objects_returned = await getObject(file, setUnitPercent, setTotalLines);
-
-      console.log("setObjects");
+      
       setObjects(objects_returned);
-
-
-
+    
     } catch (erro) {
-
       console.log("Erro read/insert: " + erro)
     };
-
   };
 
   async function sentDocument() {
-
     try {
-
-
       const allProducts = await Product.all();
-
-      const emailSent = { "email": email }
-
+      const emailSent = {"email": email}
       const body = [];
-
       body.push(allProducts);
-
       body.push(emailSent);
-
       const jsonProducts = JSON.stringify(body);
-
       ////const jsonProducts = await JSON.parse(strProducts);
-
       console.log(jsonProducts);
-
-
-
       let csv = 'string';
-
       csv = await fetch('https://danptec.com/Field/mail.php', {
         method: 'POST',
         headers: {
@@ -126,47 +91,41 @@ export default function Home(props) {
         body: jsonProducts
       });
 
-
-      //const csv = await setDatabaseToCsv();
-
+      setIndicatorEmailSent(false)
       setmodalVisible(!modalVisible)
-
       csv.status == 200 ?
         alert("Documento enviado por email!")
         : alert("Erro ao enviar o email!")
-
-
     } catch (error) {
-
       console.log("ERRO: " + error);
-
     }
-
-
     //console.log("index - csv: " + csv)
-
   };
-
-
-
 
   function removeTable() {
-
     Product.removeTable()
       .then(
-        prod => alert(prod + " itens removidos!")
-      )
-  };
-
-
-
-
-
-
-
-  return (
+        prod => {
+          setModalRemoveTable(false),
+          alert(prod + " itens removidos!")
+        })
+      };
+      return (
     <View>
-
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalRemoveTable}
+        onRequestClose={() => {
+          setModalRemoveTable(false);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ActivityIndicator size="large" color="green" />
+            <Text>Removendo Itens ...</Text>
+          </View>
+        </View>
+      </Modal>
       <Modal
         animationType="slide"
         transparent={true}
@@ -176,19 +135,15 @@ export default function Home(props) {
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-
             <ActivityIndicator size="large" color="green" />
             <Text>{percentInserted}%</Text>
-            <Text>{quantInserted} de {totalLines} inseridos</Text>
-            <Button 
-            title="Cancel" 
-            onPress={() => setmodalIndicator(false)}/>
-
+            <Text style={{ marginVertical: 15 }}>{quantInserted} de {totalLines} inseridos</Text>
+            <Button
+              title="Cancel"
+              onPress={() => setmodalIndicator(false)} />
           </View>
         </View>
       </Modal>
-
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -197,14 +152,10 @@ export default function Home(props) {
           alert("Ação encerrada.");
           setmodalVisible(!modalVisible);
         }}>
-
-        <View style={styles.centeredView}>
+          <View style={styles.centeredView}>
           <View style={styles.modalView}>
-
             <Text>Enviar arquivo por Email</Text>
-
             <View style={{ borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 35 }}>
-
               <TextInput
                 style={{ height: 40, margin: 12 }}
                 onChangeText={(text) => setEmail(text)}
@@ -212,15 +163,20 @@ export default function Home(props) {
                 placeholder="digite o email para envio..."
               />
             </View>
-
+            {
+              indicatorEmailSent
+              &&
+              <ActivityIndicator size="large" color="green" />
+            }
             <View style={{ flexDirection: "row", margin: 45 }}>
-
               <View style={{ backgroundColor: "blue", flex: 1, marginHorizontal: 5 }}>
                 <Button
                   title="Enviar"
-                  onPress={() => sentDocument()} />
+                  onPress={() => {
+                    setIndicatorEmailSent(true)
+                    sentDocument()
+                  }} />
               </View>
-
               <TouchableOpacity style={{
                 backgroundColor: "#FF3322",
                 flex: 1,
@@ -233,52 +189,40 @@ export default function Home(props) {
                 <Text style={{ color: "#FFF" }}>CANCEL</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </View>
       </Modal>
-
       <View
         style={styles.button}
       >
-
         <Button
           title="Upload CSV"
           onPress={() => {
-            setmodalIndicator(true);
             getDocument()
           }} />
-
       </View>
-
       <View
         style={styles.button}
       >
-
         <Button
           title="Download CSV"
           onPress={() => setmodalVisible(!modalVisible)} />
-
       </View>
-
-
       <View
         style={styles.button}
       >
         <Button
           title="Remover Todos"
-          onPress={() => removeTable()} />
+          onPress={() => {
+            setModalRemoveTable(true)
+            removeTable()
+          }} />
       </View>
-
-
     </View>
   );
-
-
 };
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     marginTop: 30//StatusBar.currentHeight || 0,
@@ -290,13 +234,11 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 30,
     alignContent: 'center',
-
   },
   centeredView: {
     flex: 2,
     justifyContent: "center",
     marginTop: 5
-
   },
   modalView: {
     margin: 10,
@@ -328,7 +270,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: "center"
   }
-
 });
 
 /*
